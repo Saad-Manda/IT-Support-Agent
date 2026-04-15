@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from typing import Any, Callable, Awaitable
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.graph import END, StateGraph
 
 from .observer import observe_ui
@@ -18,6 +18,50 @@ def _is_finished(state: AgentState) -> bool:
 
 def _tool_calls(msg: AIMessage) -> list[dict[str, Any]]:
     return list(getattr(msg, "tool_calls", None) or [])
+
+
+def _sanitize_message_history(messages: list[BaseMessage]) -> list[BaseMessage]:
+    """Keep provider-safe chat history with strict AI(tool_calls)->ToolMessage adjacency."""
+    sanitized: list[BaseMessage] = []
+    pending_tool_ids: set[str] | None = None
+    system_kept = False
+
+    for msg in messages:
+        if isinstance(msg, SystemMessage):
+            if system_kept:
+                continue
+            sanitized.append(msg)
+            system_kept = True
+            pending_tool_ids = None
+            continue
+
+        if isinstance(msg, HumanMessage):
+            sanitized.append(msg)
+            pending_tool_ids = None
+            continue
+
+        if isinstance(msg, AIMessage):
+            sanitized.append(msg)
+            call_ids = {
+                str(call.get("id"))
+                for call in _tool_calls(msg)
+                if isinstance(call, dict) and call.get("id")
+            }
+            pending_tool_ids = call_ids or None
+            continue
+
+        if isinstance(msg, ToolMessage):
+            if not pending_tool_ids:
+                continue
+            call_id = str(getattr(msg, "tool_call_id", "") or "")
+            if call_id not in pending_tool_ids:
+                continue
+            sanitized.append(msg)
+            pending_tool_ids.remove(call_id)
+            if not pending_tool_ids:
+                pending_tool_ids = None
+
+    return sanitized
 
 
 def build_graph(
@@ -40,20 +84,29 @@ def build_graph(
         }
 
     async def think_node(state: AgentState) -> dict:
+        history = _sanitize_message_history(list(state.get("messages") or []))
+
+        new_messages: list[BaseMessage] = []
+        if not any(isinstance(m, SystemMessage) for m in history):
+            system_msg = SystemMessage(content=SYSTEM_PROMPT)
+            history.append(system_msg)
+            new_messages.append(system_msg)
+
         prompt = user_prompt(
             task=state["task"],
             base_url=state.get("base_url", ""),
             ui_description=state.get("ui_description", ""),
         )
-        messages = list(state.get("messages") or [])
-        if not messages:
-            messages = [SystemMessage(content=SYSTEM_PROMPT)]
-        messages = messages + [HumanMessage(content=prompt)]
-        resp = await llm.ainvoke(messages)
-        return {"messages": [resp]}
+        user_msg = HumanMessage(content=prompt)
+        history.append(user_msg)
+        new_messages.append(user_msg)
+
+        resp = await llm.ainvoke(history)
+        new_messages.append(resp)
+        return {"messages": new_messages}
 
     async def act_node(state: AgentState) -> dict:
-        messages = list(state.get("messages") or [])
+        messages = _sanitize_message_history(list(state.get("messages") or []))
         if not messages:
             return {}
 
@@ -72,13 +125,15 @@ def build_graph(
         for idx, call in enumerate(calls, start=1):
             name = call.get("name")
             args = call.get("args") or {}
-            call_id = call.get("id") or f"toolcall_{idx}"
+            call_id = call.get("id")
+            if not call_id:
+                continue
 
             if name not in tools:
                 tool_messages.append(
                     ToolMessage(
                         content=f"Unknown tool '{name}'. Available: {', '.join(sorted(tools.keys()))}",
-                        tool_call_id=call_id,
+                        tool_call_id=str(call_id),
                     )
                 )
                 continue
@@ -89,12 +144,12 @@ def build_graph(
                 tool_messages.append(
                     ToolMessage(
                         content=f"Tool '{name}' failed: {type(e).__name__}: {e}",
-                        tool_call_id=call_id,
+                        tool_call_id=str(call_id),
                     )
                 )
                 continue
 
-            tool_messages.append(ToolMessage(content=result, tool_call_id=call_id))
+            tool_messages.append(ToolMessage(content=result, tool_call_id=str(call_id)))
             if name == "finish":
                 updates["is_finished"] = True
                 updates["final_summary"] = result
