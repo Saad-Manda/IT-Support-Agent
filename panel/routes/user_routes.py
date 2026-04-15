@@ -4,8 +4,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 import os
 
-from panel.database import get_db
-from panel.controllers import (
+from ..database import get_db
+from ..controllers import (
     get_dashboard_data, get_users_list,
     handle_create_user, handle_reset_password,
     handle_assign_license, get_license_options,
@@ -22,7 +22,7 @@ templates = Jinja2Templates(
 @router.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request, msg: str = "", cat: str = "", db: AsyncSession = Depends(get_db)):
     stats = await get_dashboard_data(db)
-    return templates.TemplateResponse("dashboard.html", {
+    return templates.TemplateResponse(request, "dashboard.html", {
         "request": request, "stats": stats, "msg": msg, "cat": cat
     })
 
@@ -32,7 +32,7 @@ async def dashboard(request: Request, msg: str = "", cat: str = "", db: AsyncSes
 @router.get("/users", response_class=HTMLResponse)
 async def users(request: Request, msg: str = "", cat: str = "", db: AsyncSession = Depends(get_db)):
     all_users = await get_users_list(db)
-    return templates.TemplateResponse("users.html", {
+    return templates.TemplateResponse(request, "users.html", {
         "request": request, "users": all_users, "msg": msg, "cat": cat
     })
 
@@ -41,7 +41,7 @@ async def users(request: Request, msg: str = "", cat: str = "", db: AsyncSession
 
 @router.get("/users/create", response_class=HTMLResponse)
 def create_user_get(request: Request, msg: str = "", cat: str = ""):
-    return templates.TemplateResponse("create_user.html", {
+    return templates.TemplateResponse(request, "create_user.html", {
         "request": request, "msg": msg, "cat": cat
     })
 
@@ -59,7 +59,7 @@ async def create_user_post(
 
 @router.get("/users/reset-password", response_class=HTMLResponse)
 def reset_password_get(request: Request, msg: str = "", cat: str = ""):
-    return templates.TemplateResponse("reset_password.html", {
+    return templates.TemplateResponse(request, "reset_password.html", {
         "request": request, "msg": msg, "cat": cat
     })
 
@@ -73,7 +73,7 @@ async def reset_password_post(email: str = Form(...), db: AsyncSession = Depends
 @router.get("/users/assign-license", response_class=HTMLResponse)
 def assign_license_get(request: Request, msg: str = "", cat: str = ""):
     licenses = get_license_options()
-    return templates.TemplateResponse("assign_license.html", {
+    return templates.TemplateResponse(request, "assign_license.html", {
         "request": request, "licenses": licenses, "msg": msg, "cat": cat
     })
 
