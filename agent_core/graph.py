@@ -11,6 +11,11 @@ from .prompts import user_prompt
 from .state import AgentState, WorkingContext
 from .llm import _get_llm
 
+NO_TOOL_CALL_NUDGE = (
+    "You returned no tool calls. You must respond with tool calls only. "
+    "Choose the single best next action and emit at least one valid tool call."
+)
+
 
 def _is_finished(state: AgentState) -> bool:
     return bool(state.get("is_finished"))
@@ -118,9 +123,8 @@ def build_graph(
 
         calls = _tool_calls(last)
         if not calls:
-            # Nudge by waiting briefly; next loop will observe again.
-            await page.wait_for_timeout(500)
-            return {}
+            # Add a corrective user turn so the next think step re-prompts for tool use.
+            return {"history_messages": [HumanMessage(content=NO_TOOL_CALL_NUDGE)]}
 
         tool_messages: list[ToolMessage] = []
         updates: dict[str, Any] = {}
