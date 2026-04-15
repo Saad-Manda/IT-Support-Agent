@@ -17,3 +17,14 @@ def _get_llm(
     )
 
     return llm.bind_tools(list(tools.values()))
+
+
+def _get_planner_llm(
+    model: str,
+    api_key: str,
+):
+    return ChatGoogleGenerativeAI(
+        model=model,
+        google_api_key=api_key,
+        temperature=0.0,
+    )
