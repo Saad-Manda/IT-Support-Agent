@@ -3,8 +3,7 @@ from __future__ import annotations
 import time
 from typing import Any, Callable, Awaitable
 
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.graph import END, StateGraph
 
 from .observer import observe_ui
@@ -48,7 +47,7 @@ def build_graph(
         )
         messages = list(state.get("messages") or [])
         if not messages:
-            messages = [HumanMessage(content=SYSTEM_PROMPT)]
+            messages = [SystemMessage(content=SYSTEM_PROMPT)]
         messages = messages + [HumanMessage(content=prompt)]
         resp = await llm.ainvoke(messages)
         return {"messages": [resp]}
@@ -66,41 +65,41 @@ def build_graph(
         if not calls:
             # Nudge by waiting briefly; next loop will observe again.
             await page.wait_for_timeout(500)
-            return {"messages": [ToolMessage(content="No tool call produced; waited 500ms.", tool_call_id="noop")]}
+            return {}
 
-        # Execute only the first tool call (to keep steps stable).
-        call = calls[0]
-        name = call.get("name")
-        args = call.get("args") or {}
-        call_id = call.get("id") or "toolcall"
+        tool_messages: list[ToolMessage] = []
+        updates: dict[str, Any] = {}
+        for idx, call in enumerate(calls, start=1):
+            name = call.get("name")
+            args = call.get("args") or {}
+            call_id = call.get("id") or f"toolcall_{idx}"
 
-        if name not in tools:
-            return {
-                "messages": [
+            if name not in tools:
+                tool_messages.append(
                     ToolMessage(
                         content=f"Unknown tool '{name}'. Available: {', '.join(sorted(tools.keys()))}",
                         tool_call_id=call_id,
                     )
-                ]
-            }
+                )
+                continue
 
-        try:
-            result = await tools[name](**args)
-        except Exception as e:
-            return {
-                "messages": [
+            try:
+                result = await tools[name].ainvoke(args)
+            except Exception as e:
+                tool_messages.append(
                     ToolMessage(
                         content=f"Tool '{name}' failed: {type(e).__name__}: {e}",
                         tool_call_id=call_id,
                     )
-                ]
-            }
+                )
+                continue
 
-        updates: dict[str, Any] = {"messages": [ToolMessage(content=result, tool_call_id=call_id)]}
+            tool_messages.append(ToolMessage(content=result, tool_call_id=call_id))
+            if name == "finish":
+                updates["is_finished"] = True
+                updates["final_summary"] = result
 
-        if name == "finish":
-            updates["is_finished"] = True
-            updates["final_summary"] = result
+        updates["messages"] = tool_messages
 
         return updates
 

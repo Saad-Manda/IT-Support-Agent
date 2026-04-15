@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import os
-from typing import Optional
 
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
@@ -11,7 +9,7 @@ from playwright.async_api import async_playwright
 from .graph import build_graph
 from .state import AgentState
 from .tools import build_tools
-from .config import settings
+from .config import get_settings
 
 
 async def run_task(
@@ -22,6 +20,7 @@ async def run_task(
     max_steps: int,
 ) -> str:
     load_dotenv()
+    settings = get_settings()
 
     api_key = settings.GEMINI_API_KEY
     if not api_key:

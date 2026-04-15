@@ -1,17 +1,21 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "IT Support Agent"
-    DATABASE_URL: str
-    DEBUG: bool = False
-    GEMINI_API_KEY: str
-    GEMINI_MODEL: str
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = ""
 
-    model_config = SettingsConfigDict(env_file = BASE_DIR / ".env")
+    model_config = SettingsConfigDict(
+        env_file=BASE_DIR / ".env",
+        extra="ignore",
+    )
 
 
-settings = Settings()
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    return Settings()
