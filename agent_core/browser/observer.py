@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from typing import Any
+from ..utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 OBSERVE_SCRIPT = r"""
@@ -149,5 +152,6 @@ async def observe_ui(page) -> tuple[str, dict[str, Any]]:
         "url": snapshot.get("url"),
         "count": len(snapshot.get("elements") or []),
     }
+    logger.debug("Observed UI", extra=meta)
     return ui_description, meta
 

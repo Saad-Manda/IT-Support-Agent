@@ -11,6 +11,9 @@ from ..browser.observer import observe_ui
 from ..models.prompts import user_prompt, SYSTEM_PROMPT, planner_prompt
 from .state import AgentState, WorkingContext
 from ..models.llm import _get_llm
+from ..utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 NO_TOOL_CALL_NUDGE = (
     "You returned no tool calls. You must respond with tool calls only. "
@@ -94,6 +97,7 @@ def build_graph(
 
     async def observe_node(state: AgentState) -> dict:
         ui_description, meta = await observe_ui(page)
+        logger.debug("Observed UI", extra={"url": meta.get("url"), "element_count": meta.get("count")})
         return {
             "working_context": _merge_working_context(
                 state,
@@ -112,6 +116,7 @@ def build_graph(
             previous_plan=str(working_context.get("current_plan") or "")
         )
         resp = await planner_llm.ainvoke([HumanMessage(content=prompt)])
+        logger.info("Generated new plan", extra={"plan": str(resp.content)})
         return {
             "working_context": _merge_working_context(
                 state,
@@ -137,6 +142,7 @@ def build_graph(
         history.append(user_msg)
 
         resp = await llm.ainvoke(history)
+        logger.debug("Executed reasoning step", extra={"response": str(resp.content)})
         return {"history_messages": [user_msg, resp]}
 
     async def act_node(state: AgentState) -> dict:
@@ -174,7 +180,9 @@ def build_graph(
 
             try:
                 result = await tools[name].ainvoke(args)
+                logger.info("Tool executed successfully", extra={"tool_name": name, "call_id": call_id, "args": args, "result": result})
             except Exception as e:
+                logger.error("Tool execution failed", extra={"tool_name": name, "call_id": call_id, "args": args, "error": str(e)})
                 tool_messages.append(
                     ToolMessage(
                         content=f"Tool '{name}' failed: {type(e).__name__}: {e}",

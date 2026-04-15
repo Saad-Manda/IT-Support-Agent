@@ -12,6 +12,9 @@ from .state import AgentState
 from ..browser.tools import build_tools
 from ..config import get_settings
 from ..models.prompts import SYSTEM_PROMPT
+from ..utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 async def run_task(
@@ -23,6 +26,7 @@ async def run_task(
 ) -> str:
     load_dotenv()
     settings = get_settings()
+    logger.info("Initializing run_task", extra={"task": task, "url": url, "headed": headed, "max_steps": max_steps})
 
     api_key = settings.GEMINI_API_KEY
     if not api_key:
@@ -32,6 +36,7 @@ async def run_task(
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=not headed)
+        logger.debug("Browser launched")
         context = await browser.new_context()
         page = await context.new_page()
 
@@ -59,6 +64,7 @@ async def run_task(
 
         summary = final.get("final_summary")
         if summary:
+            logger.info("Task completed successfully", extra={"summary": summary})
             await browser.close()
             return summary
 
@@ -67,7 +73,11 @@ async def run_task(
         await browser.close()
         if msgs:
             last = msgs[-1]
-            return getattr(last, "content", str(last))
+            last_content = getattr(last, "content", str(last))
+            logger.warning("Task finished with no summary", extra={"fallback_content": last_content})
+            return last_content
+            
+        logger.warning("Task finished abruptly with no messages and no summary")
         return "Finished with no summary."
 
 
@@ -87,4 +97,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

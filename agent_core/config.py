@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = ""
+    LOG_LEVEL: str = "INFO"
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
