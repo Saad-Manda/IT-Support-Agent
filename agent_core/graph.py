@@ -7,8 +7,8 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langgraph.graph import END, StateGraph
 
 from .observer import observe_ui
-from .prompts import SYSTEM_PROMPT, user_prompt
-from .state import AgentState
+from .prompts import user_prompt
+from .state import AgentState, WorkingContext
 from .llm import _get_llm
 
 
@@ -64,6 +64,12 @@ def _sanitize_message_history(messages: list[BaseMessage]) -> list[BaseMessage]:
     return sanitized
 
 
+def _merge_working_context(state: AgentState, **updates: Any) -> WorkingContext:
+    ctx = dict(state.get("working_context") or {})
+    ctx.update(updates)
+    return ctx
+
+
 def build_graph(
     *,
     page,
@@ -78,35 +84,31 @@ def build_graph(
     async def observe_node(state: AgentState) -> dict:
         ui_description, meta = await observe_ui(page)
         return {
-            "ui_description": ui_description,
-            "current_url": meta.get("url"),
-            "last_observation_ts": time.time(),
+            "working_context": _merge_working_context(
+                state,
+                ui_description=ui_description,
+                current_url=meta.get("url"),
+                last_observation_ts=time.time(),
+            )
         }
 
     async def think_node(state: AgentState) -> dict:
-        history = _sanitize_message_history(list(state.get("messages") or []))
-
-        new_messages: list[BaseMessage] = []
-        if not any(isinstance(m, SystemMessage) for m in history):
-            system_msg = SystemMessage(content=SYSTEM_PROMPT)
-            history.append(system_msg)
-            new_messages.append(system_msg)
+        history = _sanitize_message_history(list(state.get("history_messages") or []))
+        working_context = state.get("working_context") or {}
 
         prompt = user_prompt(
             task=state["task"],
             base_url=state.get("base_url", ""),
-            ui_description=state.get("ui_description", ""),
+            ui_description=str(working_context.get("ui_description") or ""),
         )
         user_msg = HumanMessage(content=prompt)
         history.append(user_msg)
-        new_messages.append(user_msg)
 
         resp = await llm.ainvoke(history)
-        new_messages.append(resp)
-        return {"messages": new_messages}
+        return {"history_messages": [user_msg, resp]}
 
     async def act_node(state: AgentState) -> dict:
-        messages = _sanitize_message_history(list(state.get("messages") or []))
+        messages = _sanitize_message_history(list(state.get("history_messages") or []))
         if not messages:
             return {}
 
@@ -122,7 +124,7 @@ def build_graph(
 
         tool_messages: list[ToolMessage] = []
         updates: dict[str, Any] = {}
-        for idx, call in enumerate(calls, start=1):
+        for call in calls:
             name = call.get("name")
             args = call.get("args") or {}
             call_id = call.get("id")
@@ -154,20 +156,21 @@ def build_graph(
                 updates["is_finished"] = True
                 updates["final_summary"] = result
 
-        updates["messages"] = tool_messages
+        updates["history_messages"] = tool_messages
 
         return updates
 
     def route_after_act(state: AgentState) -> str:
         if _is_finished(state):
             return END
-        steps = int(state.get("_steps", 0))
+        steps = int((state.get("working_context") or {}).get("steps", 0))
         if steps >= max_steps:
             return END
         return "observe"
 
     async def step_counter_node(state: AgentState) -> dict:
-        return {"_steps": int(state.get("_steps", 0)) + 1}
+        prior_steps = int((state.get("working_context") or {}).get("steps", 0))
+        return {"working_context": _merge_working_context(state, steps=prior_steps + 1)}
 
     g = StateGraph(AgentState)
     g.add_node("observe", observe_node)

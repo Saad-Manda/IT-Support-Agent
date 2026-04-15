@@ -4,12 +4,14 @@ import argparse
 import asyncio
 
 from dotenv import load_dotenv
+from langchain_core.messages import SystemMessage
 from playwright.async_api import async_playwright
 
 from .graph import build_graph
 from .state import AgentState
 from .tools import build_tools
 from .config import get_settings
+from .prompts import SYSTEM_PROMPT
 
 
 async def run_task(
@@ -41,7 +43,13 @@ async def run_task(
         state: AgentState = {
             "task": task,
             "base_url": url,
-            "messages": [],
+            "history_messages": [SystemMessage(content=SYSTEM_PROMPT)],
+            "working_context": {
+                "ui_description": "",
+                "current_url": url,
+                "last_observation_ts": None,
+                "steps": 0,
+            },
             "is_finished": False,
             "final_summary": None,
         }
@@ -54,7 +62,7 @@ async def run_task(
             return summary
 
         # Fallback: dump last message content if any.
-        msgs = final.get("messages") or []
+        msgs = final.get("history_messages") or []
         await browser.close()
         if msgs:
             last = msgs[-1]

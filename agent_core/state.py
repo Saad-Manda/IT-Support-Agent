@@ -6,15 +6,18 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
 
+class WorkingContext(TypedDict, total=False):
+    ui_description: str
+    current_url: Optional[str]
+    last_observation_ts: Optional[float]
+    steps: int
+
+
 class AgentState(TypedDict, total=False):
     task: str
     base_url: str
-    current_url: Optional[str]
-
-    ui_description: str
-    last_observation_ts: Optional[float]
-
-    messages: Annotated[list[BaseMessage], add_messages]
+    history_messages: Annotated[list[BaseMessage], add_messages]
+    working_context: WorkingContext
 
     is_finished: bool
     final_summary: Optional[str]
