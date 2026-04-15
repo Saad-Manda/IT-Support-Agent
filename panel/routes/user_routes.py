@@ -64,8 +64,14 @@ def reset_password_get(request: Request, msg: str = "", cat: str = ""):
     })
 
 @router.post("/users/reset-password")
-async def reset_password_post(email: str = Form(...), db: AsyncSession = Depends(get_db)):
-    return await handle_reset_password(db, email)
+async def reset_password_post(
+    email: str = Form(...),
+    new_password: str = Form(None),
+    db: AsyncSession = Depends(get_db)
+):
+    if not new_password:
+        new_password = None
+    return await handle_reset_password(db, email, new_password)
 
 
 # ── Assign License ────────────────────────────────────────────────────────────
