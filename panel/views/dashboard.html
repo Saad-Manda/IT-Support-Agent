@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>IT Admin Dashboard</h1>
+<div class="stat-grid">
+  <div class="stat-card"><div class="number">{{ stats.total_users }}</div><div class="label">Total Users</div></div>
+  <div class="stat-card"><div class="number">{{ stats.admins }}</div><div class="label">Admins</div></div>
+  <div class="stat-card"><div class="number">{{ stats.licensed }}</div><div class="label">Licensed Users</div></div>
+</div>
+<p><a class="btn" href="/users">View All Users →</a></p>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>User Directory</h1>
+<p><a class="btn" href="/users/create">+ Create User</a></p>
+<table>
+  <tr><th>Name</th><th>Email</th><th>Role</th><th>License</th><th>Created</th></tr>
+  {% for u in users %}
+  <tr>
+    <td>{{ u.name }}</td><td>{{ u.email }}</td>
+    <td>{{ u.role }}</td><td>{{ u.license }}</td><td>{{ u.created_at }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

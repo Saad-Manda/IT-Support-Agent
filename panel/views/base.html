@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IT Admin Panel</title>
+  <style>
+    body { font-family: monospace; background: #0f0f0f; color: #e0e0e0; margin: 0; }
+    nav { background: #1a1a2e; padding: 12px 24px; display: flex; gap: 20px; border-bottom: 1px solid #333; }
+    nav a { color: #00d4ff; text-decoration: none; font-size: 14px; }
+    nav a:hover { color: #fff; }
+    .container { max-width: 960px; margin: 40px auto; padding: 0 24px; }
+    h1 { color: #00d4ff; border-bottom: 1px solid #333; padding-bottom: 12px; }
+    .flash { padding: 12px 16px; margin: 16px 0; border-radius: 4px; font-size: 14px; }
+    .flash.success { background: #1a3a1a; border: 1px solid #00cc44; color: #00cc44; }
+    .flash.error   { background: #3a1a1a; border: 1px solid #cc0044; color: #cc0044; }
+    .flash.warning { background: #3a2a00; border: 1px solid #ffaa00; color: #ffaa00; }
+    input, select { background: #1e1e1e; border: 1px solid #444; color: #e0e0e0;
+                    padding: 8px 12px; border-radius: 4px; font-family: monospace;
+                    font-size: 14px; width: 100%; box-sizing: border-box; margin: 6px 0 14px; }
+    label { font-size: 13px; color: #aaa; }
+    button, .btn { background: #00d4ff; color: #0f0f0f; border: none; padding: 10px 24px;
+                   border-radius: 4px; font-weight: bold; cursor: pointer;
+                   font-family: monospace; font-size: 14px; text-decoration: none;
+                   display: inline-block; }
+    button:hover, .btn:hover { background: #00b8d9; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #1a1a2e; color: #00d4ff; padding: 10px; text-align: left; }
+    td { padding: 10px; border-bottom: 1px solid #222; }
+    tr:hover td { background: #1a1a1a; }
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+    .stat-card { background: #1a1a2e; border: 1px solid #333; border-radius: 8px;
+                 padding: 20px; text-align: center; }
+    .stat-card .number { font-size: 36px; color: #00d4ff; font-weight: bold; }
+    .stat-card .label  { font-size: 12px; color: #888; margin-top: 4px; }
+    .form-box { background: #1a1a1a; border: 1px solid #333; border-radius: 8px;
+                padding: 28px; max-width: 480px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <strong style="color:#fff">⚙ IT Admin</strong>
+    <a href="/">Dashboard</a>
+    <a href="/users">Users</a>
+    <a href="/users/create">Create User</a>
+    <a href="/users/reset-password">Reset Password</a>
+    <a href="/users/assign-license">Assign License</a>
+  </nav>
+  <div class="container">
+    {% if msg %}<div class="flash {{ cat }}">{{ msg }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

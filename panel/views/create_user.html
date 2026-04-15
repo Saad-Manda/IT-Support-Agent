@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Create New User</h1>
+<div class="form-box">
+  <form method="POST" action="/users/create">
+    <label>Full Name</label>
+    <input id="name" type="text" name="name" placeholder="Jane Doe" required>
+    <label>Email Address</label>
+    <input id="email" type="email" name="email" placeholder="jane@company.com" required>
+    <label>Role</label>
+    <select id="role" name="role">
+      <option>Employee</option><option>Developer</option>
+      <option>Manager</option><option>Admin</option>
+    </select>
+    <button type="submit">Create User</button>
+  </form>
+</div>
+{% endblock %}
