@@ -9,9 +9,9 @@ from playwright.async_api import async_playwright
 
 from .graph import build_graph
 from .state import AgentState
-from .tools import build_tools
-from .config import get_settings
-from .prompts import SYSTEM_PROMPT
+from ..browser.tools import build_tools
+from ..config import get_settings
+from ..models.prompts import SYSTEM_PROMPT
 
 
 async def run_task(
@@ -54,7 +54,8 @@ async def run_task(
             "final_summary": None,
         }
 
-        final = await graph.ainvoke(state)
+        recursion_limit = max(100, max_steps * 6)
+        final = await graph.ainvoke(state, config={"recursion_limit": recursion_limit})
 
         summary = final.get("final_summary")
         if summary:

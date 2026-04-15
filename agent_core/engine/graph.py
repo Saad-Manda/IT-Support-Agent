@@ -7,11 +7,10 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 
-from .observer import observe_ui
-from .prompts import user_prompt, SYSTEM_PROMPT, planner_prompt
+from ..browser.observer import observe_ui
+from ..models.prompts import user_prompt, SYSTEM_PROMPT, planner_prompt
 from .state import AgentState, WorkingContext
-from .llm import _get_llm
-from .llm import _get_llm
+from ..models.llm import _get_llm
 
 NO_TOOL_CALL_NUDGE = (
     "You returned no tool calls. You must respond with tool calls only. "
