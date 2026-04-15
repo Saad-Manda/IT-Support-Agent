@@ -4,11 +4,13 @@ import time
 from typing import Any, Callable, Awaitable
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 
 from .observer import observe_ui
-from .prompts import user_prompt
+from .prompts import user_prompt, SYSTEM_PROMPT, planner_prompt
 from .state import AgentState, WorkingContext
+from .llm import _get_llm
 from .llm import _get_llm
 
 NO_TOOL_CALL_NUDGE = (
@@ -81,10 +83,15 @@ def build_graph(
     tools: dict[str, Callable[..., Awaitable[str]]],
     model: str,
     api_key: str,
-    max_steps: int = 40,
+    max_steps: int = 80,
 ) -> Any:
     
     llm = _get_llm(tools, model, api_key)
+    planner_llm = ChatGoogleGenerativeAI(
+        model=model,
+        google_api_key=api_key,
+        temperature=0.0,
+    )
 
     async def observe_node(state: AgentState) -> dict:
         ui_description, meta = await observe_ui(page)
@@ -97,14 +104,35 @@ def build_graph(
             )
         }
 
+    async def plan_node(state: AgentState) -> dict:
+        working_context = state.get("working_context") or {}
+        prompt = planner_prompt(
+            task=state["task"],
+            base_url=state.get("base_url", ""),
+            ui_description=str(working_context.get("ui_description") or ""),
+            previous_plan=str(working_context.get("current_plan") or "")
+        )
+        resp = await planner_llm.ainvoke([HumanMessage(content=prompt)])
+        return {
+            "working_context": _merge_working_context(
+                state,
+                current_plan=str(resp.content),
+                require_replan=False
+            )
+        }
+
     async def think_node(state: AgentState) -> dict:
         history = _sanitize_message_history(list(state.get("history_messages") or []))
         working_context = state.get("working_context") or {}
+
+        if not history or not any(isinstance(m, SystemMessage) for m in history):
+            history.insert(0, SystemMessage(content=SYSTEM_PROMPT))
 
         prompt = user_prompt(
             task=state["task"],
             base_url=state.get("base_url", ""),
             ui_description=str(working_context.get("ui_description") or ""),
+            current_plan=str(working_context.get("current_plan") or "")
         )
         user_msg = HumanMessage(content=prompt)
         history.append(user_msg)
@@ -142,6 +170,7 @@ def build_graph(
                         tool_call_id=str(call_id),
                     )
                 )
+                updates["working_context"] = _merge_working_context(state, require_replan=True)
                 continue
 
             try:
@@ -153,6 +182,7 @@ def build_graph(
                         tool_call_id=str(call_id),
                     )
                 )
+                updates["working_context"] = _merge_working_context(state, require_replan=True)
                 continue
 
             tool_messages.append(ToolMessage(content=result, tool_call_id=str(call_id)))
@@ -172,18 +202,26 @@ def build_graph(
             return END
         return "observe"
 
+    def route_after_observe(state: AgentState) -> str:
+        ctx = state.get("working_context") or {}
+        if not ctx.get("current_plan") or ctx.get("require_replan"):
+            return "plan"
+        return "think"
+
     async def step_counter_node(state: AgentState) -> dict:
         prior_steps = int((state.get("working_context") or {}).get("steps", 0))
         return {"working_context": _merge_working_context(state, steps=prior_steps + 1)}
 
     g = StateGraph(AgentState)
     g.add_node("observe", observe_node)
+    g.add_node("plan", plan_node)
     g.add_node("think", think_node)
     g.add_node("act", act_node)
     g.add_node("count", step_counter_node)
 
     g.set_entry_point("observe")
-    g.add_edge("observe", "think")
+    g.add_conditional_edges("observe", route_after_observe, {"plan": "plan", "think": "think"})
+    g.add_edge("plan", "think")
     g.add_edge("think", "act")
     g.add_edge("act", "count")
     g.add_conditional_edges("count", route_after_act)

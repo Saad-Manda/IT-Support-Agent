@@ -11,6 +11,8 @@ class WorkingContext(TypedDict, total=False):
     current_url: Optional[str]
     last_observation_ts: Optional[float]
     steps: int
+    current_plan: Optional[str]
+    require_replan: bool
 
 
 class AgentState(TypedDict, total=False):
