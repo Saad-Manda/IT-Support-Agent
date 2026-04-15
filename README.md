@@ -28,5 +28,5 @@ python -m panel.main
 
 ```bash
 set GEMINI_API_KEY=YOUR_KEY
-python -m agent_core "Alice is a developer with email alice@company.com, create a user" --url http://localhost:8000/users/create --headed
+python -m agent_core "Alice is a developer with email alice@doe.com, create a user" --url http://localhost:8000/ --headed
 ```

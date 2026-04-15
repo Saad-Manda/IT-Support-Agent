@@ -104,9 +104,9 @@ class AgentNodes:
 
             try:
                 result = await self.tools[name].ainvoke(args)
-                logger.info("Tool executed successfully", extra={"tool_name": name, "call_id": call_id, "args": args, "result": result})
+                logger.info("Tool executed successfully", extra={"tool_name": name, "call_id": call_id, "tool_args": args, "result": result})
             except Exception as e:
-                logger.error("Tool execution failed", extra={"tool_name": name, "call_id": call_id, "args": args, "error": str(e)})
+                logger.error("Tool execution failed", extra={"tool_name": name, "call_id": call_id, "tool_args": args, "error": str(e)})
                 tool_messages.append(
                     ToolMessage(
                         content=f"Tool '{name}' failed: {type(e).__name__}: {e}",
