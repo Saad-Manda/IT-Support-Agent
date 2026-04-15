@@ -1,13 +1,13 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from utils import flash_redirect, get_user_by_email
-from panel.models.user_model import UserModel
+from .utils import flash_redirect, get_user_by_email
+from ..models.user_model import UserModel
 
 
-async def handel_reset_password(db: AsyncSession, email: str, new_password: str) -> UserModel | None:
+async def handle_reset_password(db: AsyncSession, email: str, new_password: str) -> UserModel | None:
     email = email.strip().lower()
-    user  = get_user_by_email(email)
+    user  = await get_user_by_email(db, email)
 
     if not user:
         return flash_redirect("/users/reset-password", f"No user found: {email}", "error")
@@ -25,11 +25,9 @@ async def handel_reset_password(db: AsyncSession, email: str, new_password: str)
         ),
         {"email": email, "hashed_password": hashed_password},
     )
-    row = result.mappings().first()
     await db.commit()
-    UserModel.model_validate(row) if row else None
     return flash_redirect(
         "/users/reset-password",
-        f"Password reset for {email}. Temporary password: {new_password}",
+        f"Password has been reset for {email}.",
         "success",
     )

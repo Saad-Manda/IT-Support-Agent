@@ -1,8 +1,8 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from utils import flash_redirect, get_user_by_email
-from panel.models.user_model import LicenseType, RoleType, UserModel
+from .utils import flash_redirect, get_user_by_email
+from ..models.user_model import LicenseType, RoleType, UserModel
 
 
 async def handle_create_user(
@@ -19,7 +19,7 @@ async def handle_create_user(
     if not name or not email:
         return flash_redirect("/users/create", "Name and email are required.", "error")
 
-    existing = get_user_by_email(email)
+    existing = await get_user_by_email(db, email)
     if existing:
         return flash_redirect("/users/create", f"User {email} already exists.", "warning")
 
@@ -41,5 +41,4 @@ async def handle_create_user(
         },
     )
     await db.commit()
-    UserModel.model_validate(result.mappings().one())
     return flash_redirect("/users", f"User {name} ({email}) created with role '{role}'.", "success")

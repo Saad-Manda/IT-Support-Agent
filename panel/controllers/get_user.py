@@ -1,7 +1,7 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from panel.models.user_model import UserModel
+from ..models.user_model import UserModel
 
 
 async def get_users_list(db: AsyncSession) -> list[UserModel]:

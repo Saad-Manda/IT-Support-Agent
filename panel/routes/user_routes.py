@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Depends, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.ext.asyncio import AsyncSession
 import os
 
+from panel.database import get_db
 from panel.controllers import (
     get_dashboard_data, get_users_list,
     handle_create_user, handle_reset_password,
@@ -18,8 +20,8 @@ templates = Jinja2Templates(
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 @router.get("/", response_class=HTMLResponse)
-def dashboard(request: Request, msg: str = "", cat: str = ""):
-    stats = get_dashboard_data()
+async def dashboard(request: Request, msg: str = "", cat: str = "", db: AsyncSession = Depends(get_db)):
+    stats = await get_dashboard_data(db)
     return templates.TemplateResponse("dashboard.html", {
         "request": request, "stats": stats, "msg": msg, "cat": cat
     })
@@ -28,8 +30,8 @@ def dashboard(request: Request, msg: str = "", cat: str = ""):
 # ── User Directory ────────────────────────────────────────────────────────────
 
 @router.get("/users", response_class=HTMLResponse)
-def users(request: Request, msg: str = "", cat: str = ""):
-    all_users = get_users_list()
+async def users(request: Request, msg: str = "", cat: str = "", db: AsyncSession = Depends(get_db)):
+    all_users = await get_users_list(db)
     return templates.TemplateResponse("users.html", {
         "request": request, "users": all_users, "msg": msg, "cat": cat
     })
@@ -44,12 +46,13 @@ def create_user_get(request: Request, msg: str = "", cat: str = ""):
     })
 
 @router.post("/users/create")
-def create_user_post(
+async def create_user_post(
     name:  str = Form(...),
     email: str = Form(...),
     role:  str = Form("Employee"),
+    db: AsyncSession = Depends(get_db),
 ):
-    return handle_create_user(name, email, role)
+    return await handle_create_user(db, name, email, role)
 
 
 # ── Reset Password ────────────────────────────────────────────────────────────
@@ -61,8 +64,8 @@ def reset_password_get(request: Request, msg: str = "", cat: str = ""):
     })
 
 @router.post("/users/reset-password")
-def reset_password_post(email: str = Form(...)):
-    return handle_reset_password(email)
+async def reset_password_post(email: str = Form(...), db: AsyncSession = Depends(get_db)):
+    return await handle_reset_password(db, email)
 
 
 # ── Assign License ────────────────────────────────────────────────────────────
@@ -75,5 +78,5 @@ def assign_license_get(request: Request, msg: str = "", cat: str = ""):
     })
 
 @router.post("/users/assign-license")
-def assign_license_post(email: str = Form(...), license: str = Form("None")):
-    return handle_assign_license(email, license)
+async def assign_license_post(email: str = Form(...), license: str = Form("None"), db: AsyncSession = Depends(get_db)):
+    return await handle_assign_license(db, email, license)

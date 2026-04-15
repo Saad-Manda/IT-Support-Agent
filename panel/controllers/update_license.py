@@ -1,13 +1,13 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from utils import flash_redirect, get_user_by_email
-from panel.models.user_model import LicenseType, UserModel
+from .utils import flash_redirect, get_user_by_email
+from ..models.user_model import LicenseType, UserModel
 
 
 async def handle_assign_license(db: AsyncSession, email: str, license: LicenseType) -> UserModel | None:
     email = email.strip().lower()
-    user  = get_user_by_email(email)
+    user  = await get_user_by_email(db, email)
 
     if not user:
         return flash_redirect("/users/assign-license", f"No user found: {email}", "error")
@@ -23,9 +23,7 @@ async def handle_assign_license(db: AsyncSession, email: str, license: LicenseTy
         ),
         {"email": email, "license": license},
     )
-    row = result.mappings().first()
     await db.commit()
-    UserModel.model_validate(row) if row else None
 
     return flash_redirect(
         "/users/assign-license",
@@ -33,5 +31,5 @@ async def handle_assign_license(db: AsyncSession, email: str, license: LicenseTy
         "success",
     )
 
-def get_license_options():
-    return LicenseType
+def get_license_options() -> list[str]:
+    return list(LicenseType.__args__)
