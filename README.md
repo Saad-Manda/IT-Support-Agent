@@ -35,14 +35,40 @@ At a high level, the system separates:
 
 ### State Machine Flow
 
-The execution cycle generally follows this recurring loop:
-
-1. **Initialization (`runner.py`)**: A task is passed to the runner. The runner launches Playwright, configures the base context, navigates to the target URL, and injects the initial state into the graph.
-2. **Node 1: Observation (`observe_ui`)**: The agent reads the current DOM, filtering out invisible/disabled elements, and compiles a simplified UI layout of interactable elements containing an integer `[ID]`.
-3. **Node 2: Planning (`planner_node`)**: The LLM reviews the task against the current UI and generates/revises a step-by-step action plan.
-4. **Node 3: Reasoning (`reasoning_node`)**: The agent evaluates the current plan against the immediate UI and selects exactly one tool call to execute (e.g., clicking a specific element ID).
-5. **Node 4: Tool Execution (`tool_node`)**: The command is handed off to Playwright, which interacts with the browser page. Playwright awaits resolution / network stability.
-6. **Cycle**: The agent repeats from Observation (Step 2) until the `finish` tool is called by the LLM, indicating task completion.
+```mermaid
+stateDiagram-v2
+    direction TB
+    
+    [*] --> Runner_Init : User Input Task
+    
+    Runner_Init --> Observe_UI : Navigate & Init State
+    
+    Observe_UI --> Planner : State includes DOM IDs
+    note right of Observe_UI
+        Inject JS
+        Filter invisible DOM
+        Map Interactable [ID]s
+    end note
+    
+    Planner --> Reasoning : State includes updated Plan
+    note right of Planner
+        LLM reviews Task vs UI
+        Draft/Update Plan
+    end note
+    
+    Reasoning --> Tool_Execution : Action Tool Selected
+    Reasoning --> [*] : "finish" Tool Selected
+    note right of Reasoning
+        Evaluate Plan
+        Pick 1 Tool Call
+    end note
+    
+    Tool_Execution --> Observe_UI : Action Complete
+    note right of Tool_Execution
+        Playwright interacts
+        Wait for network/DOM
+    end note
+```
 
 ### How to Use
 
