@@ -40,6 +40,12 @@ async def run_task(
         context = await browser.new_context()
         page = await context.new_page()
 
+        async def _handle_dialog(dialog):
+            logger.info("Automatically accepting dialog", extra={"dialog_message": dialog.message, "dialog_type": dialog.type})
+            await dialog.accept()
+
+        page.on("dialog", _handle_dialog)
+
         await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
 
         tools = build_tools(page, url)
