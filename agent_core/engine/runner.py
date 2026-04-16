@@ -83,17 +83,35 @@ async def run_task(
 
 def main():
     parser = argparse.ArgumentParser(description="Run the LangGraph+Playwright IT agent.")
-    parser.add_argument("task", help="Natural-language task to execute")
+    parser.add_argument("task", nargs="?", default=None, help="Natural-language task to execute (optional)")
     parser.add_argument("--url", default="http://localhost:8000", help="Target base URL")
     parser.add_argument("--headed", action="store_true", help="Run with visible browser window")
     parser.add_argument("--max-steps", type=int, default=40, help="Max graph iterations")
     args = parser.parse_args()
 
-    result = asyncio.run(
-        run_task(args.task, url=args.url, headed=args.headed, max_steps=args.max_steps)
-    )
-    print(result)
+    if args.task:
+        result = asyncio.run(
+            run_task(args.task, url=args.url, headed=args.headed, max_steps=args.max_steps)
+        )
+        print(result)
+    else:
+        print("Starting interactive IT Support Agent CLI. Type /exit to quit.")
+        while True:
+            try:
+                task_input = input("\nEnter task: ").strip()
+                if task_input.lower() in ("/exit", "/quit"):
+                    print("Exiting...")
+                    break
+                if not task_input:
+                    continue
 
+                result = asyncio.run(
+                    run_task(task_input, url=args.url, headed=args.headed, max_steps=args.max_steps)
+                )
+                print(f"\nResult:\n{result}")
+            except KeyboardInterrupt:
+                print("\nExiting...")
+                break
 
 if __name__ == "__main__":
     main()
