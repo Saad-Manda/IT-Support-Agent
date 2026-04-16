@@ -18,6 +18,10 @@ OBSERVE_SCRIPT = r"""
         "select",
         "[role='button']",
         "[contenteditable='true']",
+        "table",
+        "tr",
+        "th",
+        "td"
       ].join(",")
     )
   );

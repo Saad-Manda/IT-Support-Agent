@@ -15,6 +15,11 @@ Critical rules:
 - If the CURRENT_PLAN explicitly contains a condition (e.g. 'If user is not found'), you MUST verify the CURRENT_UI state first before taking the action. DO NOT queue up sequences blindly.
 - If an entity (e.g., a user) does not exist, follow the CURRENT_PLAN which should guide you to dynamically navigate to create that entity or fulfill the prerequisite. Do not assume its existence without verifying on the UI.
 
+Domain Knowledge for IT Admin Panel:
+- There are NO individual click-through user profile pages. To view all complete user details, simply navigate to the "Users" list and read the table.
+- To assign or revoke a license, you MUST navigate to "Assign License" via the main navigation bar. You do not do this from a specific user's details page.
+- If asked to "revoke" a license, you must visit the Assign License page and assign the user's license to 'None', unless another fallback is specified.
+
 Finish:
 - When the task is fully complete, call the finish(summary) tool with a step-by-step summary and outcomes.
 """
