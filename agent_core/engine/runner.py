@@ -6,6 +6,7 @@ import asyncio
 from dotenv import load_dotenv
 from langchain_core.messages import SystemMessage
 from playwright.async_api import async_playwright
+from prompt_toolkit import prompt
 
 from .graph import build_graph
 from .state import AgentState
@@ -102,9 +103,10 @@ def main():
         print(result)
     else:
         print("Starting interactive IT Support Agent CLI. Type /exit to quit.")
+        print("Tip: With multi-line enabled, press Esc followed by Enter to submit your task.")
         while True:
             try:
-                task_input = input("\nEnter task: ").strip()
+                task_input = prompt("\nEnter task (Esc + Enter to submit):\n> ", multiline=True).strip()
                 if task_input.lower() in ("/exit", "/quit"):
                     print("Exiting...")
                     break

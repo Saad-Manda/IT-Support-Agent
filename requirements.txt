@@ -16,3 +16,4 @@ langchain-core==0.3.76
 langchain-google-genai==2.0.10
 langgraph==0.2.76
 python-telegram-bot==21.11.1
+prompt-toolkit==3.0.43
