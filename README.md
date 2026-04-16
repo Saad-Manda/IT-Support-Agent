@@ -126,6 +126,7 @@ To start the admin panel portal locally:
 ```bash
 uvicorn panel.main:app --reload
 ```
+The panel will be available at `http://localhost:8000`. You can perform actions manually or use the agent to automate tasks on this interface.
 
 ## Setup & Configuration
 
@@ -140,4 +141,3 @@ Before running the services, you must configure the environment variables requir
    - `GEMINI_API_KEY`: Your Google Gemini API key used by the agent.
    - `GEMINI_MODEL`: The specific Gemini model you intend to use (e.g., `gemini-2.5-flash`).
    - `TELEGRAM_BOT_TOKEN`: The bot token obtained from BotFather if setting up the Telegram integration.
-The panel will be available at `http://localhost:8000`. You can perform actions manually or use the agent to automate tasks on this interface.
