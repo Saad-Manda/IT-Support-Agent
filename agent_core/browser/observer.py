@@ -97,7 +97,15 @@ OBSERVE_SCRIPT = r"""
     const tag = (el.tagName || "").toLowerCase();
     const type = normalize(el.getAttribute("type"));
     const role = normalize(el.getAttribute("role"));
-    const label = labelFor(el);
+    let label = labelFor(el);
+
+    if (tag === 'select') {
+      const opts = Array.from(el.querySelectorAll('option')).map(o => normalize(o.innerText || o.textContent));
+      const optStr = opts.join(' | ');
+      if (optStr) {
+        label = label ? `${label} (Options: ${optStr})` : `Options: ${optStr}`;
+      }
+    }
 
     const assignedId = idCounter++;
     el.setAttribute("data-agent-id", String(assignedId));
