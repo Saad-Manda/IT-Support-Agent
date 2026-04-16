@@ -21,7 +21,7 @@ class AgentNodes:
 
     async def observe_node(self, state: AgentState) -> dict:
         ui_description, meta = await observe_ui(self.page)
-        logger.debug("Observed UI", extra={"url": meta.get("url"), "element_count": meta.get("count")})
+        logger.info("Observed UI", extra={"url": meta.get("url"), "element_count": meta.get("count")})
         return {
             "working_context": _merge_working_context(
                 state,
@@ -66,7 +66,7 @@ class AgentNodes:
         history.append(user_msg)
 
         resp = await self.llm.ainvoke(history)
-        logger.debug("Executed reasoning step", extra={"response": str(resp.content)})
+        logger.info("Executed reasoning step", extra={"response": str(resp.content)})
         return {"history_messages": [user_msg, resp]}
 
     async def act_node(self, state: AgentState) -> dict:

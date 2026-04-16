@@ -28,5 +28,5 @@ python -m panel.main
 
 ```bash
 set GEMINI_API_KEY=YOUR_KEY
-python -m agent_core "Navigate through the Panel and tell me exactly how many active users currently have an admin role." --url http://localhost:8000/ --headed
+python -m agent_core "Create three users: Charles, Bob, and Charlie. Give Charles and Charlie 'Slack Pro' licenses, but give Bob a 'Adobe CC' license." --url http://localhost:8000/ --headed
 ```
