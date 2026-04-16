@@ -35,40 +35,8 @@ At a high level, the system separates:
 
 ### State Machine Flow
 
-```mermaid
-stateDiagram-v2
-    direction TB
-    
-    [*] --> Runner_Init : User Input Task
-    
-    Runner_Init --> Observe_UI : Navigate & Init State
-    
-    Observe_UI --> Planner : State includes DOM IDs
-    note right of Observe_UI
-        Inject JS
-        Filter invisible DOM
-        Map Interactable [ID]s
-    end note
-    
-    Planner --> Reasoning : State includes updated Plan
-    note right of Planner
-        LLM reviews Task vs UI
-        Draft/Update Plan
-    end note
-    
-    Reasoning --> Tool_Execution : Action Tool Selected
-    Reasoning --> [*] : "finish" Tool Selected
-    note right of Reasoning
-        Evaluate Plan
-        Pick 1 Tool Call
-    end note
-    
-    Tool_Execution --> Observe_UI : Action Complete
-    note right of Tool_Execution
-        Playwright interacts
-        Wait for network/DOM
-    end note
-```
+<img width="1653" height="2307" alt="image" src="https://github.com/user-attachments/assets/f98d87ad-2570-4bf7-8cb1-c2aba56b9844" />
+
 
 ### How to Use
 
