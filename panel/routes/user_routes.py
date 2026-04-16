@@ -9,6 +9,7 @@ from ..controllers import (
     get_dashboard_data, get_users_list,
     handle_create_user, handle_reset_password,
     handle_assign_license, get_license_options,
+    get_user_by_email, handle_delete_user
 )
 
 router = APIRouter()
@@ -55,12 +56,18 @@ async def create_user_post(
     return await handle_create_user(db, name, email, role)
 
 
-# ── Reset Password ────────────────────────────────────────────────────────────
+# ── Manage User ───────────────────────────────────────────────────────────────
 
-@router.get("/users/reset-password", response_class=HTMLResponse)
-def reset_password_get(request: Request, msg: str = "", cat: str = ""):
-    return templates.TemplateResponse(request, "reset_password.html", {
-        "request": request, "msg": msg, "cat": cat
+@router.get("/users/manage", response_class=HTMLResponse)
+async def manage_user_get(request: Request, email: str, msg: str = "", cat: str = "", db: AsyncSession = Depends(get_db)):
+    user = await get_user_by_email(db, email.strip().lower())
+    if not user:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(f"/users?msg=User not found&cat=error", status_code=303)
+        
+    licenses = get_license_options()
+    return templates.TemplateResponse(request, "manage_user.html", {
+        "request": request, "user": user, "licenses": licenses, "msg": msg, "cat": cat
     })
 
 @router.post("/users/reset-password")
@@ -74,14 +81,11 @@ async def reset_password_post(
     return await handle_reset_password(db, email, new_password)
 
 
-# ── Assign License ────────────────────────────────────────────────────────────
+# ── Delete User ───────────────────────────────────────────────────────────────
 
-@router.get("/users/assign-license", response_class=HTMLResponse)
-def assign_license_get(request: Request, msg: str = "", cat: str = ""):
-    licenses = get_license_options()
-    return templates.TemplateResponse(request, "assign_license.html", {
-        "request": request, "licenses": licenses, "msg": msg, "cat": cat
-    })
+@router.post("/users/delete")
+async def delete_user_post(email: str = Form(...), db: AsyncSession = Depends(get_db)):
+    return await handle_delete_user(db, email)
 
 @router.post("/users/assign-license")
 async def assign_license_post(email: str = Form(...), license: str = Form("None"), db: AsyncSession = Depends(get_db)):

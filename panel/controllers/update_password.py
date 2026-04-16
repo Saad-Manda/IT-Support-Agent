@@ -1,5 +1,6 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+from urllib.parse import quote
 
 from .utils import flash_redirect, get_user_by_email
 from ..models.user_model import UserModel
@@ -29,7 +30,7 @@ async def handle_reset_password(db: AsyncSession, email: str, new_password: str 
     )
     await db.commit()
     return flash_redirect(
-        "/users/reset-password",
+        f"/users/manage?email={quote(email)}",
         f"Password reset for {email}. Temporary password: {new_password}",
         "success",
     )

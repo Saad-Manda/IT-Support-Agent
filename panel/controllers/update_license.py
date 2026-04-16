@@ -1,3 +1,4 @@
+from urllib.parse import quote
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,7 +27,7 @@ async def handle_assign_license(db: AsyncSession, email: str, license: LicenseTy
     await db.commit()
 
     return flash_redirect(
-        "/users/assign-license",
+        f"/users/manage?email={quote(email)}",
         f"License '{license}' assigned to {email}.",
         "success",
     )

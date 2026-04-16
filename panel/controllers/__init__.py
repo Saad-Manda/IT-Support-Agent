@@ -4,6 +4,7 @@ from .get_dashboard import get_dashboard_data
 from .get_user import get_users_list
 from .update_license import handle_assign_license, get_license_options
 from .update_password import handle_reset_password
+from .delete_user import handle_delete_user
 
 __all__ = [
     "flash_redirect", 
@@ -13,5 +14,6 @@ __all__ = [
     "get_users_list",
     "handle_assign_license",
     "get_license_options",
-    "handle_reset_password"
+    "handle_reset_password",
+    "handle_delete_user"
 ]
