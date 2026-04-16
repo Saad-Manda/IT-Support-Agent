@@ -128,6 +128,26 @@ uvicorn panel.main:app --reload
 ```
 The panel will be available at `http://localhost:8000`. You can perform actions manually or use the agent to automate tasks on this interface.
 
+## Telegram Bot Interface
+
+This directory (`bot/`) contains a Telegram bot that provides a remote, conversational interface for the IT Support Agent. 
+
+### Architecture & Capabilities
+
+The bot uses `python-telegram-bot` to listen for incoming messages. When a user sends a natural language task (e.g., "Assign Alice a GitHub license"), the bot asynchronously spawns the headless Playwright agent (`agent_core/engine/runner.py`) to fulfill the task in the background.
+
+- **Remote Management**: Perform IT support tasks on the go from your phone or desktop.
+- **Background Execution**: The browser automation runs fully headless, so tasks are handled seamlessly behind the scenes.
+- **Reporting**: Once the agent confirms the task is complete, the bot responds with the final summary.
+
+### Running the Bot
+
+To start the Telegram bot:
+```bash
+python -m bot.main
+```
+Make sure you have provided your `TELEGRAM_BOT_TOKEN` in the `.env` file before running.
+
 ## Setup & Configuration
 
 Before running the services, you must configure the environment variables required for the database connection and API keys.
