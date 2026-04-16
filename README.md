@@ -33,6 +33,11 @@ At a high level, the system separates:
 2. **Cognition**: Using Gemini (or any structured output LLM) to draft an implementation plan and pick the correct next action to take.
 3. **Execution**: Mapping the LLM's selected logical tool (e.g. `click(element_id=3)`) strictly to Playwright automation commands in the active browser context.
 
+Planning is conditional in the graph runtime:
+- After each `observe`, the agent routes to `plan` only when there is no existing plan or when `require_replan=True`.
+- Otherwise, it skips planning and routes directly to `think`.
+- This behavior is implemented in `agent_core/engine/routers.py` (`route_after_observe`).
+
 ### State Machine Flow
 
 <img width="1653" height="2307" alt="image" src="https://github.com/user-attachments/assets/f98d87ad-2570-4bf7-8cb1-c2aba56b9844" />
