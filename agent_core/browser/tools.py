@@ -13,7 +13,7 @@ def _locator_for_id(page, element_id: int):
     return page.locator(f'[data-agent-id="{int(element_id)}"]')
 
 
-def build_tools(page) -> dict[str, Callable[..., Awaitable[str]]]:
+def build_tools(page, base_url: str) -> dict[str, Callable[..., Awaitable[str]]]:
     @tool
     async def click(element_id: int) -> str:
         """Click an element on the page by its integer ID."""
@@ -47,11 +47,11 @@ def build_tools(page) -> dict[str, Callable[..., Awaitable[str]]]:
         return f"Selected '{value_or_label}' on element {element_id}"
 
     @tool
-    async def navigate(url: str) -> str:
-        """Navigate the browser to a URL."""
-        logger.info("Executing tool: navigate", extra={"url": url})
-        await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
-        return f"Navigated to {url}"
+    async def go_home() -> str:
+        """Navigate the browser back to the base URL (home page). Use this if you are stuck or need to restart."""
+        logger.info("Executing tool: go_home", extra={"url": base_url})
+        await page.goto(base_url, wait_until="domcontentloaded", timeout=30_000)
+        return f"Navigated to home ({base_url})"
 
     @tool
     async def wait(milliseconds: int) -> str:
@@ -70,7 +70,7 @@ def build_tools(page) -> dict[str, Callable[..., Awaitable[str]]]:
         "click": click,
         "type_text": type_text,
         "select_option": select_option,
-        "navigate": navigate,
+        "go_home": go_home,
         "wait": wait,
         "finish": finish,
     }

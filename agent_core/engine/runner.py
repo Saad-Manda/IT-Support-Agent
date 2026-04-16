@@ -42,7 +42,7 @@ async def run_task(
 
         await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
 
-        tools = build_tools(page)
+        tools = build_tools(page, url)
         graph = build_graph(page=page, tools=tools, model=model, api_key=api_key, max_steps=max_steps)
 
         state: AgentState = {
