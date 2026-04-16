@@ -107,6 +107,13 @@ OBSERVE_SCRIPT = r"""
       }
     }
 
+    if (typeof el.checkValidity === 'function' && !el.checkValidity()) {
+      const msg = normalize(el.validationMessage);
+      if (msg) {
+        label = label ? `${label} [INVALID: ${msg}]` : `[INVALID: ${msg}]`;
+      }
+    }
+
     const assignedId = idCounter++;
     el.setAttribute("data-agent-id", String(assignedId));
 
