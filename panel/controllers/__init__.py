@@ -1,7 +1,7 @@
-from .utils import flash_redirect, get_user_by_email
+from .utils import flash_redirect
 from .create_user import handle_create_user
 from .get_dashboard import get_dashboard_data
-from .get_user import get_users_list
+from .get_user import get_users_list, get_user_by_email
 from .update_license import handle_assign_license, get_license_options
 from .update_password import handle_reset_password
 from .delete_user import handle_delete_user

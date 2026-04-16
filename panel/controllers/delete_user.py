@@ -1,7 +1,8 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .utils import flash_redirect, get_user_by_email
+from .utils import flash_redirect
+from .get_user import get_user_by_email
 
 
 async def handle_delete_user(db: AsyncSession, email: str):
