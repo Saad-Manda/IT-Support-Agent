@@ -94,3 +94,50 @@ Change into the root directory of the repository and launch the interactive agen
 python -m agent_core --url http://localhost:8000/ --headed
 ```
 You can then sequentially pass it natural language prompts to perform. To exit, type `/exit`.
+
+## Admin Panel Portal
+
+This directory (`panel/`) contains the FastAPI web application that serves as the IT Admin Panel. This UI is the environment in which the agent operates and performs tasks.
+
+### Architecture
+
+The admin panel is built using a standard Model-View-Controller (MVC) architecture:
+
+- **FastAPI**: The core web framework routing requests and building the API.
+- **Jinja2**: HTML templating engine used to render the frontend views.
+- **PostGreSQL**: Database used for storing user and license data.
+
+### File Structure
+
+```text
+panel/
+├── main.py              # FastAPI application entry point
+├── config.py            # Environment and config settings
+├── database.py          # Database connection and queries
+├── controllers/         # Request handling and business logic
+├── models/              # Schema definitions and data access
+├── routes/              # API and view route definitions
+└── views/               # HTML templates (dashboard, users, etc.)
+```
+
+### Running the Panel
+
+To start the admin panel portal locally:
+```bash
+uvicorn panel.main:app --reload
+```
+
+## Setup & Configuration
+
+Before running the services, you must configure the environment variables required for the database connection and API keys.
+
+1. Copy the provided example environment file to a new `.env` file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Open the `.env` file and populate it with your actual credentials:
+   - `DATABASE_URL`: Your PostgreSQL connection string.
+   - `GEMINI_API_KEY`: Your Google Gemini API key used by the agent.
+   - `GEMINI_MODEL`: The specific Gemini model you intend to use (e.g., `gemini-2.5-flash`).
+   - `TELEGRAM_BOT_TOKEN`: The bot token obtained from BotFather if setting up the Telegram integration.
+The panel will be available at `http://localhost:8000`. You can perform actions manually or use the agent to automate tasks on this interface.
