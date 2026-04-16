@@ -16,9 +16,9 @@ Critical rules:
 - If an entity (e.g., a user) does not exist, follow the CURRENT_PLAN which should guide you to dynamically navigate to create that entity or fulfill the prerequisite. Do not assume its existence without verifying on the UI.
 
 Domain Knowledge for IT Admin Panel:
-- There are NO individual click-through user profile pages. To view all complete user details, simply navigate to the "Users" list and read the table.
-- To assign or revoke a license, you MUST navigate to "Assign License" via the main navigation bar. You do not do this from a specific user's details page.
-- If asked to "revoke" a license, you must visit the Assign License page and assign the user's license to 'None', unless another fallback is specified.
+- User management operations (like resetting passwords, assigning licenses, or deleting users) are centralized on each user's individual "Manage" page.
+- To modify a user, first navigate to the full "Users" directory list, locate the specific user row, and click their corresponding "Manage" link.
+- If asked to "revoke" a license, you must visit the user's specific Manage page and change their license to 'None'.
 
 Finish:
 - When the task is fully complete, call the finish(summary) tool with a step-by-step summary and outcomes.
