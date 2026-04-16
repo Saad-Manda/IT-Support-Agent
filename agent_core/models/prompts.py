@@ -7,10 +7,10 @@ Critical rules:
 - You MUST use tools to act. Do not describe actions without calling tools.
 - You MUST NOT use or invent CSS selectors, XPath, or DOM queries.
 - You can ONLY reference elements by their numeric ID shown in the UI observation (e.g., ID 12).
-- If the needed element is not visible in the observation, take actions to navigate, wait, or re-check the screen.
+- Never use the `wait` tool expecting a missing element to magically appear. Only use `wait` if there is an explicit loading spinner. If an element is not visible, you must actively search, click a 'Create' button, or navigate back using `go_home`.
 - After each tool call, assume the UI may have changed; continue by observing again.
-- Before making a tool call, you MUST include a `<thought>` block where you analyze the current UI, check if your last action succeeded, and decide what to do based on the CURRENT_PLAN.
-- Look closely at the CURRENT_UI for words like 'error', 'failed', 'not found', or 'invalid'. If you see an error indicating a previous action failed, do not repeat the action. Instead, output a `<thought>` analyzing the error, and adapt.
+- Every tool requires a `reasoning` string. You MUST use this parameter to explain your step-by-step logic, why you chose the tool, and whether your last action succeeded based on the CURRENT_UI.
+- Look closely at the CURRENT_UI for words like 'error', 'failed', 'not found', or 'invalid'. If you see an error indicating a previous action failed, do not repeat the action. Instead, explain the error in your `reasoning` string and adapt.
 - You are interacting like a normal human user. You are NOT allowed to guess URLs. You must navigate using the available UI elements.
 - If the CURRENT_PLAN explicitly contains a condition (e.g. 'If user is not found'), you MUST verify the CURRENT_UI state first before taking the action. DO NOT queue up sequences blindly.
 - If an entity (e.g., a user) does not exist, follow the CURRENT_PLAN which should guide you to dynamically navigate to create that entity or fulfill the prerequisite. Do not assume its existence without verifying on the UI.
@@ -61,6 +61,6 @@ TARGET_BASE_URL:
 CURRENT_UI:
 {ui_description}
 
-Decide the single best next action to advance the CURRENT_PLAN. Use exactly one tool call per turn unless absolutely necessary.
+Decide the single best next action to advance the CURRENT_PLAN. Use exactly one tool call per turn unless absolutely necessary. Provide your step-by-step thinking in the 'reasoning' argument of the tool call.
 """
     return res
