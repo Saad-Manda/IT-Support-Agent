@@ -7,13 +7,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
-    OLLAMA_MODEL: str = "gpt-oss:20b"
-
     # Gemini settings (intentionally commented out).
     # GEMINI_API_KEY: str = ""
     # GEMINI_MODEL: str = ""
 
-    OLLAMA_MODEL: str
+    GROQ_MODEL: str
+    GROQ_API_KEY: str
 
     LOG_LEVEL: str = "INFO"
 
