@@ -55,7 +55,13 @@ from agent_core.engine.runner import run_task
 
 async def my_script():
     # Pass headed=True to watch the browser work
-    result = await run_task("Assign Alice a GitHub Enterprise License", url="http://localhost:8000/", headed=False, max_steps=40)
+    result = await run_task(
+        "Assign Alice a GitHub Enterprise License",
+        url="http://localhost:8000/",
+        site_slug="default",
+        headed=False,
+        max_steps=40,
+    )
     print(result)
 
 asyncio.run(my_script())

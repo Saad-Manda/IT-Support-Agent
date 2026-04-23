@@ -39,7 +39,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     try:
         # We explicitly set headed=False because this runs completely in the background via Telegram
-        result = await run_task(task_text, url="http://localhost:8000/", headed=False, max_steps=40)
+        result = await run_task(
+            task_text,
+            url="http://localhost:8000/",
+            site_slug="telegram_default",
+            headed=False,
+            max_steps=40,
+        )
         
         if not result:
             result = "Task finished but returned no specific summary."

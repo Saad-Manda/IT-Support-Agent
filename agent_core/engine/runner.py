@@ -10,6 +10,7 @@ from prompt_toolkit import prompt
 
 from .graph import build_graph
 from .state import AgentState
+from ..browser.session import load_session, save_session
 from ..browser.tools import build_tools
 from ..config import get_settings
 from ..models.prompts import SYSTEM_PROMPT
@@ -22,6 +23,7 @@ async def run_task(
     task: str,
     *,
     url: str,
+    site_slug: str,
     headed: bool,
     max_steps: int,
 ) -> str:
@@ -39,6 +41,7 @@ async def run_task(
         browser = await p.chromium.launch(headless=not headed)
         logger.debug("Browser launched")
         context = await browser.new_context()
+        await load_session(context, site_slug)
         page = await context.new_page()
 
         async def _handle_dialog(dialog):
@@ -68,6 +71,7 @@ async def run_task(
 
         recursion_limit = max(100, max_steps * 6)
         final = await graph.ainvoke(state, config={"recursion_limit": recursion_limit})
+        await save_session(context, site_slug)
 
         summary = final.get("final_summary")
         if summary:
@@ -92,13 +96,20 @@ def main():
     parser = argparse.ArgumentParser(description="Run the LangGraph+Playwright IT agent.")
     parser.add_argument("task", nargs="?", default=None, help="Natural-language task to execute (optional)")
     parser.add_argument("--url", default="http://localhost:8000", help="Target base URL")
+    parser.add_argument("--site-slug", default="default", help="Session namespace key used for persisted browser state")
     parser.add_argument("--headed", action="store_true", help="Run with visible browser window")
     parser.add_argument("--max-steps", type=int, default=40, help="Max graph iterations")
     args = parser.parse_args()
 
     if args.task:
         result = asyncio.run(
-            run_task(args.task, url=args.url, headed=args.headed, max_steps=args.max_steps)
+            run_task(
+                args.task,
+                url=args.url,
+                site_slug=args.site_slug,
+                headed=args.headed,
+                max_steps=args.max_steps,
+            )
         )
         print(result)
     else:
@@ -114,7 +125,13 @@ def main():
                     continue
 
                 result = asyncio.run(
-                    run_task(task_input, url=args.url, headed=args.headed, max_steps=args.max_steps)
+                    run_task(
+                        task_input,
+                        url=args.url,
+                        site_slug=args.site_slug,
+                        headed=args.headed,
+                        max_steps=args.max_steps,
+                    )
                 )
                 print(f"\nResult:\n{result}")
             except KeyboardInterrupt:
