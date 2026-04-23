@@ -15,13 +15,11 @@ def build_graph(
     *,
     page,
     tools: dict[str, Callable[..., Awaitable[str]]],
-    model: str,
-    api_key: str,
     max_steps: int = 80,
 ) -> Any:
     logger.debug("Building LangGraph state graph instances...")
-    llm = _get_llm(tools, model, api_key)
-    planner_llm = _get_planner_llm(model, api_key)
+    llm = _get_llm(tools)
+    planner_llm = _get_planner_llm()
 
     nodes = AgentNodes(page=page, tools=tools, llm=llm, planner_llm=planner_llm)
 

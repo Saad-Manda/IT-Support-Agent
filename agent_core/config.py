@@ -7,8 +7,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
-    GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = ""
+    OLLAMA_MODEL: str = "gpt-oss:20b"
+
+    # Gemini settings (intentionally commented out).
+    # GEMINI_API_KEY: str = ""
+    # GEMINI_MODEL: str = ""
+
+    OLLAMA_MODEL: str
+
     LOG_LEVEL: str = "INFO"
 
     model_config = SettingsConfigDict(

@@ -14,7 +14,6 @@ from .graph import build_graph
 from .state import AgentState
 from ..browser.session import load_session, save_session
 from ..browser.tools import build_tools
-from ..config import get_settings
 from ..models.prompts import SYSTEM_PROMPT
 from ..utils.logger import get_logger
 
@@ -29,15 +28,9 @@ async def run_task(
     headed: bool,
     max_steps: int,
 ) -> str:
+    
     load_dotenv()
-    settings = get_settings()
     logger.info("Initializing run_task", extra={"task": task, "url": url, "headed": headed, "max_steps": max_steps})
-
-    api_key = settings.GEMINI_API_KEY
-    if not api_key:
-        raise RuntimeError("Missing GEMINI_API_KEY in environment.")
-
-    model = settings.GEMINI_MODEL
 
     async with async_playwright() as p:
 
@@ -63,7 +56,7 @@ async def run_task(
         await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
 
         tools = build_tools(page, url)
-        graph = build_graph(page=page, tools=tools, model=model, api_key=api_key, max_steps=max_steps)
+        graph = build_graph(page=page, tools=tools, max_steps=max_steps)
 
         state: AgentState = {
             "task": task,
