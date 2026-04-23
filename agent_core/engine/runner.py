@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import shutil
 
 from dotenv import load_dotenv
 from langchain_core.messages import SystemMessage
 from playwright.async_api import async_playwright
+from playwright_stealth import stealth_async
 from prompt_toolkit import prompt
 
 from .graph import build_graph
@@ -38,11 +40,19 @@ async def run_task(
     model = settings.GEMINI_MODEL
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=not headed)
+
+        if not shutil.which("google-chrome") and not shutil.which("chrome"):
+            logger.warning("Chrome not found. Falling back to Playwright Chromium. Stealth effectiveness reduced.")
+            channel = None
+        else:
+            channel = "chrome"
+
+        browser = await p.chromium.launch(headless=not headed, channel=channel)
         logger.debug("Browser launched")
         context = await browser.new_context()
         await load_session(context, site_slug)
         page = await context.new_page()
+        await stealth_async(page)
 
         async def _handle_dialog(dialog):
             logger.info("Automatically accepting dialog", extra={"dialog_message": dialog.message, "dialog_type": dialog.type})

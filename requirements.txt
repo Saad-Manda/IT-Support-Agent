@@ -11,6 +11,7 @@ uvicorn==0.44.0
 
 # Agent dependencies
 playwright==1.55.0
+playwright-stealth==1.0.6
 langchain==0.3.27
 langchain-core==0.3.76
 langchain-google-genai==2.0.10
