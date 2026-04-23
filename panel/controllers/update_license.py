@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .utils import flash_redirect
 from .get_user import get_user_by_email
-from ..models.user_model import LicenseType, UserModel
+from models.user_model import LicenseType, UserModel
 
 
 async def handle_assign_license(db: AsyncSession, email: str, license: LicenseType) -> UserModel | None:

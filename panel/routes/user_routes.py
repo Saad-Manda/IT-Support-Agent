@@ -4,8 +4,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 import os
 
-from ..database import get_db
-from ..controllers import (
+from database import get_db
+from controllers import (
     get_dashboard_data, get_users_list,
     handle_create_user, handle_reset_password,
     handle_assign_license, get_license_options,

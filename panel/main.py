@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
-from .database import test_connection
-from .routes.user_routes import router
+from database import test_connection
+from routes.user_routes import router
 
 app = FastAPI(title="IT Admin Panel")
 
@@ -16,4 +16,4 @@ async def startup():
 app.include_router(router)
 
 if __name__ == "__main__":
-    uvicorn.run("panel.main:app", host="0.0.0.0", port=5001, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=5001, reload=True)

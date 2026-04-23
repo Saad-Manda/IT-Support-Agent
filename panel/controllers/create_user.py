@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .utils import flash_redirect
 from .get_user import get_user_by_email
-from ..models.user_model import LicenseType, RoleType, UserModel
+from models.user_model import LicenseType, RoleType, UserModel
 
 
 async def handle_create_user(

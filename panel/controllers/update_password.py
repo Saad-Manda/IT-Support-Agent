@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 from .utils import flash_redirect
 from .get_user import get_user_by_email
-from ..models.user_model import UserModel
+from models.user_model import UserModel
 
 
 async def handle_reset_password(db: AsyncSession, email: str, new_password: str | None = None):
